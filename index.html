@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ring Alarm</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f0f1a;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      color: #e0e0f0;
+    }
+
+    .card {
+      background: #1a1a2e;
+      border: 1px solid #2a2a4a;
+      border-radius: 24px;
+      padding: 48px 56px;
+      width: 360px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+      box-shadow: 0 8px 48px rgba(0, 0, 0, 0.5);
+    }
+
+    h1 {
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #7070a0;
+    }
+
+    #clock {
+      font-size: 64px;
+      font-weight: 200;
+      letter-spacing: 0.05em;
+      color: #e8e8ff;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: #2a2a4a;
+    }
+
+    .alarm-section {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .alarm-label {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #7070a0;
+    }
+
+    #alarm-time {
+      width: 100%;
+      background: #0f0f1a;
+      border: 1px solid #2a2a4a;
+      border-radius: 12px;
+      color: #e8e8ff;
+      font-size: 40px;
+      font-weight: 200;
+      text-align: center;
+      padding: 12px 0;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #alarm-time:focus { border-color: #6060c0; }
+
+    #alarm-time::-webkit-calendar-picker-indicator {
+      filter: invert(0.6);
+      cursor: pointer;
+    }
+
+    #toggle-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: none;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    #toggle-btn:active { transform: scale(0.97); }
+
+    #toggle-btn.set {
+      background: #5050cc;
+      color: #fff;
+    }
+
+    #toggle-btn.set:hover { background: #6060dd; }
+
+    #toggle-btn.cancel {
+      background: #2a2a4a;
+      color: #a0a0d0;
+    }
+
+    #toggle-btn.cancel:hover { background: #3a3a5a; }
+
+    #status {
+      font-size: 13px;
+      color: #7070a0;
+      min-height: 20px;
+      text-align: center;
+      transition: color 0.3s;
+    }
+
+    #status.active { color: #80d0a0; }
+    #status.ringing { color: #e08080; animation: pulse 0.8s ease-in-out infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .ring-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(80, 40, 40, 0.7);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .ring-overlay.show { display: flex; }
+
+    .ring-box {
+      background: #1a1a2e;
+      border: 1px solid #5a3a3a;
+      border-radius: 24px;
+      padding: 48px 56px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .ring-icon { font-size: 56px; animation: shake 0.5s ease-in-out infinite; }
+
+    @keyframes shake {
+      0%, 100% { transform: rotate(-8deg); }
+      50% { transform: rotate(8deg); }
+    }
+
+    .ring-box h2 { font-size: 28px; font-weight: 300; color: #e8e8ff; }
+    .ring-box p { font-size: 14px; color: #7070a0; }
+
+    #dismiss-btn {
+      background: #cc3333;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 40px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    #dismiss-btn:hover { background: #dd4444; }
+    #dismiss-btn:active { transform: scale(0.97); }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Ring Alarm</h1>
+  <div id="clock">00:00:00</div>
+  <div class="divider"></div>
+  <div class="alarm-section">
+    <span class="alarm-label">アラーム時刻</span>
+    <input type="time" id="alarm-time" value="07:00" />
+  </div>
+  <button id="toggle-btn" class="set">アラームをセット</button>
+  <div id="status">アラームはオフです</div>
+</div>
+
+<div class="ring-overlay" id="ring-overlay">
+  <div class="ring-box">
+    <div class="ring-icon">🔔</div>
+    <h2>アラーム！</h2>
+    <p id="ring-time-label"></p>
+    <button id="dismiss-btn">止める</button>
+  </div>
+</div>
+
+<script>
+  const clockEl = document.getElementById('clock');
+  const alarmInput = document.getElementById('alarm-time');
+  const toggleBtn = document.getElementById('toggle-btn');
+  const statusEl = document.getElementById('status');
+  const ringOverlay = document.getElementById('ring-overlay');
+  const ringTimeLabel = document.getElementById('ring-time-label');
+  const dismissBtn = document.getElementById('dismiss-btn');
+
+  let alarmSet = false;
+  let alarmTarget = null;
+  let audioCtx = null;
+  let ringingNodes = [];
+  let alreadyFired = false;
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function tick() {
+    const now = new Date();
+    const hh = pad(now.getHours());
+    const mm = pad(now.getMinutes());
+    const ss = pad(now.getSeconds());
+    clockEl.textContent = `${hh}:${mm}:${ss}`;
+
+    if (alarmSet && alarmTarget && !alreadyFired) {
+      const [ah, am] = alarmTarget.split(':').map(Number);
+      if (now.getHours() === ah && now.getMinutes() === am && now.getSeconds() === 0) {
+        triggerAlarm();
+      }
+    }
+  }
+
+  setInterval(tick, 1000);
+  tick();
+
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
+  function startRingSound() {
+    const ctx = getAudioCtx();
+    const freqs = [880, 1100, 880, 1100];
+    let time = ctx.currentTime;
+
+    freqs.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, time + i * 0.25);
+      gain.gain.linearRampToValueAtTime(0.3, time + i * 0.25 + 0.05);
+      gain.gain.linearRampToValueAtTime(0, time + i * 0.25 + 0.2);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(time + i * 0.25);
+      osc.stop(time + i * 0.25 + 0.25);
+      ringingNodes.push(osc);
+    });
+
+    ringingNodes._repeat = setInterval(() => {
+      const ctx2 = getAudioCtx();
+      const t = ctx2.currentTime;
+      freqs.forEach((freq, i) => {
+        const osc = ctx2.createOscillator();
+        const g = ctx2.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        g.gain.setValueAtTime(0, t + i * 0.25);
+        g.gain.linearRampToValueAtTime(0.3, t + i * 0.25 + 0.05);
+        g.gain.linearRampToValueAtTime(0, t + i * 0.25 + 0.2);
+        osc.connect(g);
+        g.connect(ctx2.destination);
+        osc.start(t + i * 0.25);
+        osc.stop(t + i * 0.25 + 0.25);
+      });
+    }, 1200);
+  }
+
+  function stopRingSound() {
+    if (ringingNodes._repeat) {
+      clearInterval(ringingNodes._repeat);
+      ringingNodes._repeat = null;
+    }
+    ringingNodes = [];
+  }
+
+  function triggerAlarm() {
+    alreadyFired = true;
+    ringTimeLabel.textContent = `設定時刻: ${alarmTarget}`;
+    ringOverlay.classList.add('show');
+    statusEl.textContent = '🔔 アラーム鳴動中！';
+    statusEl.className = 'ringing';
+    startRingSound();
+  }
+
+  function dismissAlarm() {
+    stopRingSound();
+    ringOverlay.classList.remove('show');
+    alarmSet = false;
+    alreadyFired = false;
+    alarmTarget = null;
+    toggleBtn.textContent = 'アラームをセット';
+    toggleBtn.className = 'set';
+    statusEl.textContent = 'アラームはオフです';
+    statusEl.className = '';
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    if (!alarmSet) {
+      alarmTarget = alarmInput.value;
+      if (!alarmTarget) return;
+      alarmSet = true;
+      alreadyFired = false;
+      toggleBtn.textContent = 'キャンセル';
+      toggleBtn.className = 'cancel';
+      statusEl.textContent = `${alarmTarget} にアラームをセット済み`;
+      statusEl.className = 'active';
+    } else {
+      dismissAlarm();
+    }
+  });
+
+  dismissBtn.addEventListener('click', dismissAlarm);
+</script>
+</body>
+</html>
