@@ -3,605 +3,814 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ring Alarm</title>
+  <title>Gorilla Alarm 🦍</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --accent: #7c6dfa;
-      --accent-glow: rgba(124, 109, 250, 0.4);
-      --accent-2: #f06dba;
-      --glass-bg: rgba(255, 255, 255, 0.06);
-      --glass-border: rgba(255, 255, 255, 0.12);
-      --text-primary: #f0f0ff;
-      --text-secondary: rgba(200, 200, 240, 0.55);
+      --banana: #f9d923;
+      --banana-dark: #e6c400;
+      --banana-glow: rgba(249, 217, 35, 0.35);
+      --gorilla: #2a1a0e;
+      --gorilla-mid: #3d2512;
+      --jungle-dark: #0d1a0f;
+      --jungle-mid: #152218;
+      --jungle-green: #1e3a20;
+      --leaf: #2d5a2e;
+      --text: #fef9e7;
+      --text-dim: rgba(254, 249, 231, 0.5);
+      --glass: rgba(255, 245, 180, 0.06);
+      --glass-border: rgba(249, 217, 35, 0.15);
     }
 
     body {
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #060612;
       font-family: 'Inter', sans-serif;
-      color: var(--text-primary);
-      overflow: hidden;
+      background: var(--jungle-dark);
+      color: var(--text);
+      overflow-x: hidden;
+      overflow-y: auto;
     }
 
-    /* ── animated gradient blobs ── */
+    /* ── jungle background ── */
     .bg {
       position: fixed;
       inset: 0;
       z-index: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 80%, rgba(45, 90, 46, 0.4) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 80% 20%, rgba(30, 58, 32, 0.5) 0%, transparent 70%),
+        radial-gradient(ellipse 80% 60% at 50% 50%, rgba(13, 26, 15, 1) 0%, #060d07 100%);
       pointer-events: none;
     }
-    .blob {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.35;
-      animation: drift 12s ease-in-out infinite alternate;
-    }
-    .blob-1 {
-      width: 520px; height: 520px;
-      background: radial-gradient(circle, #5b4aff, transparent 70%);
-      top: -120px; left: -100px;
-      animation-duration: 14s;
-    }
-    .blob-2 {
-      width: 400px; height: 400px;
-      background: radial-gradient(circle, #f06dba, transparent 70%);
-      bottom: -80px; right: -80px;
-      animation-duration: 10s;
-      animation-delay: -4s;
-    }
-    .blob-3 {
-      width: 300px; height: 300px;
-      background: radial-gradient(circle, #23c4f8, transparent 70%);
-      top: 40%; left: 55%;
-      opacity: 0.2;
-      animation-duration: 16s;
-      animation-delay: -7s;
+
+    .leaf { position: fixed; pointer-events: none; z-index: 0; font-size: 60px; opacity: 0.12; animation: sway 6s ease-in-out infinite alternate; }
+    .leaf:nth-child(1) { top: -10px; left: -10px; font-size: 120px; animation-duration: 7s; }
+    .leaf:nth-child(2) { top: -10px; right: -20px; font-size: 100px; transform: scaleX(-1); animation-duration: 9s; animation-delay: -3s; }
+    .leaf:nth-child(3) { bottom: 0; left: 10px; font-size: 90px; animation-duration: 8s; animation-delay: -1s; }
+    .leaf:nth-child(4) { bottom: 20px; right: 0; font-size: 80px; transform: scaleX(-1) rotate(20deg); animation-duration: 6s; animation-delay: -5s; }
+    .leaf:nth-child(5) { top: 40%; left: -20px; font-size: 70px; animation-duration: 10s; animation-delay: -2s; }
+
+    @keyframes sway {
+      from { transform: rotate(-4deg) scale(1); }
+      to   { transform: rotate(4deg) scale(1.04); }
     }
 
-    @keyframes drift {
-      from { transform: translate(0, 0) scale(1); }
-      to   { transform: translate(40px, 30px) scale(1.08); }
-    }
-
-    /* ── particles ── */
-    canvas#stars {
+    /* floating bananas */
+    .float-banana {
       position: fixed;
-      inset: 0;
-      z-index: 0;
       pointer-events: none;
+      z-index: 0;
+      font-size: 28px;
+      opacity: 0.18;
+      animation: float-up 15s linear infinite;
+    }
+    @keyframes float-up {
+      0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+      5%   { opacity: 0.18; }
+      95%  { opacity: 0.18; }
+      100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
     }
 
-    /* ── card ── */
-    .card {
+    /* ── layout ── */
+    .page {
       position: relative;
       z-index: 1;
-      width: 400px;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 32px;
-      padding: 52px 52px 44px;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 28px;
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      box-shadow:
-        0 0 0 1px rgba(255,255,255,0.04) inset,
-        0 24px 64px rgba(0,0,0,0.55),
-        0 0 80px rgba(92,74,255,0.1);
+      padding: 32px 16px 48px;
+      gap: 20px;
     }
 
-    /* ── header ── */
-    .header {
+    /* ── gorilla header ── */
+    .gorilla-header {
       display: flex;
+      flex-direction: column;
       align-items: center;
       gap: 8px;
     }
-    .bell-icon {
-      font-size: 15px;
-      opacity: 0.6;
+
+    .gorilla-face {
+      font-size: 80px;
+      line-height: 1;
+      transition: filter 0.5s;
+      cursor: default;
+      user-select: none;
+      animation: gorilla-idle 4s ease-in-out infinite;
     }
-    h1 {
-      font-size: 12px;
-      font-weight: 500;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--text-secondary);
+    @keyframes gorilla-idle {
+      0%, 100% { transform: translateY(0) rotate(-1deg); }
+      50%       { transform: translateY(-6px) rotate(1deg); }
+    }
+    .gorilla-face.alert {
+      animation: gorilla-alert 0.4s ease-in-out infinite alternate;
+      filter: drop-shadow(0 0 16px rgba(249,217,35,0.6));
+    }
+    @keyframes gorilla-alert {
+      from { transform: rotate(-6deg) scale(1); }
+      to   { transform: rotate(6deg) scale(1.08); }
+    }
+    .gorilla-face.sleeping {
+      animation: gorilla-sleep 3s ease-in-out infinite;
+      filter: brightness(0.7);
+    }
+    @keyframes gorilla-sleep {
+      0%, 100% { transform: rotate(-3deg); }
+      50%       { transform: rotate(3deg); }
     }
 
-    /* ── clock ring ── */
-    .clock-wrap {
-      position: relative;
-      width: 220px;
-      height: 220px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .gorilla-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 28px;
+      color: var(--banana);
+      text-shadow: 0 2px 12px var(--banana-glow), 0 0 40px rgba(249,217,35,0.2);
+      letter-spacing: 0.05em;
     }
-    .clock-svg {
-      position: absolute;
-      inset: 0;
-      transform: rotate(-90deg);
+
+    .gorilla-mood {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-dim);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      min-height: 18px;
+      transition: color 0.4s;
     }
-    .ring-track {
-      fill: none;
-      stroke: rgba(255,255,255,0.06);
-      stroke-width: 3;
+    .gorilla-mood.active { color: #86efac; }
+    .gorilla-mood.ringing { color: #fca5a5; animation: pulse-text 0.6s ease-in-out infinite; }
+    @keyframes pulse-text { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+    /* ── clock card ── */
+    .clock-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 28px;
+      padding: 28px 40px;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,245,180,0.03) inset;
     }
-    .ring-progress {
-      fill: none;
-      stroke: url(#ringGradient);
-      stroke-width: 3;
-      stroke-linecap: round;
-      transition: stroke-dashoffset 1s linear;
+
+    #clock {
+      font-family: 'Fredoka One', cursive;
+      font-size: 68px;
+      letter-spacing: 0.04em;
+      color: var(--banana);
+      text-shadow: 0 0 30px var(--banana-glow), 0 2px 0 rgba(0,0,0,0.4);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
     }
-    .clock-inner {
+
+    #date {
+      margin-top: 6px;
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+    }
+
+    /* ── add alarm card ── */
+    .add-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 28px;
+      padding: 28px 32px;
+      width: 100%;
+      max-width: 420px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
       display: flex;
       flex-direction: column;
+      gap: 16px;
+    }
+
+    .section-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 15px;
+      color: var(--banana);
+      letter-spacing: 0.08em;
+      display: flex;
       align-items: center;
       gap: 6px;
     }
-    #clock {
-      font-size: 52px;
-      font-weight: 200;
-      letter-spacing: 0.03em;
-      color: var(--text-primary);
-      font-variant-numeric: tabular-nums;
-      line-height: 1;
-      text-shadow: 0 0 40px rgba(124, 109, 250, 0.5);
-    }
-    #date {
-      font-size: 12px;
-      font-weight: 400;
-      color: var(--text-secondary);
-      letter-spacing: 0.06em;
-    }
 
-    /* ── divider ── */
-    .divider {
-      width: 100%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
-    }
-
-    /* ── alarm section ── */
-    .alarm-section {
-      width: 100%;
+    .input-row {
       display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .alarm-label {
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--text-secondary);
+      gap: 10px;
+      align-items: stretch;
     }
 
-    .time-input-wrap {
-      position: relative;
-    }
-    #alarm-time {
-      width: 100%;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 16px;
-      color: var(--text-primary);
-      font-family: 'Inter', sans-serif;
-      font-size: 36px;
-      font-weight: 200;
+    #new-alarm-time {
+      flex: 0 0 auto;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(249,217,35,0.2);
+      border-radius: 14px;
+      color: var(--text);
+      font-family: 'Fredoka One', cursive;
+      font-size: 28px;
       text-align: center;
-      padding: 14px 0;
+      padding: 10px 12px;
       outline: none;
       cursor: pointer;
-      transition: border-color 0.25s, box-shadow 0.25s;
+      transition: border-color 0.2s, box-shadow 0.2s;
       font-variant-numeric: tabular-nums;
+      width: 150px;
     }
-    #alarm-time:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow), 0 0 24px var(--accent-glow);
+    #new-alarm-time:focus {
+      border-color: var(--banana);
+      box-shadow: 0 0 0 3px var(--banana-glow);
     }
-    #alarm-time::-webkit-calendar-picker-indicator {
-      filter: invert(0.5) brightness(1.4);
+    #new-alarm-time::-webkit-calendar-picker-indicator {
+      filter: invert(0.8) sepia(1) saturate(3) hue-rotate(5deg);
       cursor: pointer;
-      opacity: 0.5;
+      opacity: 0.6;
     }
 
-    /* ── toggle button ── */
-    #toggle-btn {
-      width: 100%;
-      padding: 17px;
-      border-radius: 16px;
-      border: none;
+    #new-alarm-label {
+      flex: 1;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(249,217,35,0.15);
+      border-radius: 14px;
+      color: var(--text);
       font-family: 'Inter', sans-serif;
       font-size: 14px;
-      font-weight: 500;
+      padding: 10px 16px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #new-alarm-label::placeholder { color: var(--text-dim); }
+    #new-alarm-label:focus {
+      border-color: rgba(249,217,35,0.5);
+      box-shadow: 0 0 0 3px var(--banana-glow);
+    }
+
+    #add-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 14px;
+      border: none;
+      font-family: 'Fredoka One', cursive;
+      font-size: 16px;
       letter-spacing: 0.06em;
       cursor: pointer;
-      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
-      position: relative;
-      overflow: hidden;
+      background: linear-gradient(135deg, var(--banana), #f0a500);
+      color: var(--gorilla);
+      box-shadow: 0 4px 20px var(--banana-glow);
+      transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
-    #toggle-btn::before {
-      content: '';
+    #add-btn:hover { box-shadow: 0 6px 28px rgba(249,217,35,0.55); }
+    #add-btn:active { transform: scale(0.97); }
+
+    /* ── alarm list ── */
+    .alarm-list-card {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .alarm-item {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+      transition: border-color 0.3s, box-shadow 0.3s;
+      animation: slide-in 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes slide-in {
+      from { opacity: 0; transform: translateY(12px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .alarm-item.active-alarm {
+      border-color: rgba(134, 239, 172, 0.4);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.35), 0 0 20px rgba(134,239,172,0.1);
+    }
+    .alarm-item.ringing-alarm {
+      border-color: rgba(249,217,35,0.6);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.35), 0 0 30px rgba(249,217,35,0.2);
+      animation: ring-pulse 0.6s ease-in-out infinite alternate;
+    }
+    @keyframes ring-pulse {
+      from { box-shadow: 0 4px 20px rgba(0,0,0,0.35), 0 0 20px rgba(249,217,35,0.2); }
+      to   { box-shadow: 0 4px 20px rgba(0,0,0,0.35), 0 0 40px rgba(249,217,35,0.45); }
+    }
+
+    .alarm-banana { font-size: 28px; flex-shrink: 0; }
+
+    .alarm-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .alarm-time-display {
+      font-family: 'Fredoka One', cursive;
+      font-size: 26px;
+      color: var(--text);
+      letter-spacing: 0.04em;
+      font-variant-numeric: tabular-nums;
+    }
+    .alarm-label-display {
+      font-size: 12px;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+    }
+
+    .alarm-toggle {
+      position: relative;
+      width: 46px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+    .alarm-toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-track {
       position: absolute;
       inset: 0;
-      background: rgba(255,255,255,0.12);
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-    #toggle-btn:hover::before { opacity: 1; }
-    #toggle-btn:active { transform: scale(0.97); }
-
-    #toggle-btn.set {
-      background: linear-gradient(135deg, #6c5ce7, #a855f7);
-      color: #fff;
-      box-shadow: 0 4px 24px rgba(108, 92, 231, 0.45);
-    }
-    #toggle-btn.set:hover {
-      box-shadow: 0 6px 32px rgba(108, 92, 231, 0.65);
-    }
-    #toggle-btn.cancel {
-      background: rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.1);
+      border-radius: 13px;
+      cursor: pointer;
+      transition: background 0.3s;
       border: 1px solid rgba(255,255,255,0.1);
-      color: rgba(200, 200, 240, 0.7);
+    }
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      background: rgba(200,200,200,0.7);
+      border-radius: 50%;
+      top: 3px; left: 3px;
+      transition: transform 0.3s, background 0.3s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+    .alarm-toggle input:checked + .toggle-track {
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+      border-color: rgba(74,222,128,0.3);
+    }
+    .alarm-toggle input:checked + .toggle-track::after {
+      transform: translateX(20px);
+      background: #fff;
     }
 
-    /* ── status ── */
-    #status {
-      font-size: 12px;
-      font-weight: 400;
-      color: var(--text-secondary);
-      min-height: 18px;
+    .alarm-delete {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      opacity: 0.35;
+      transition: opacity 0.2s, transform 0.2s;
+      padding: 4px;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .alarm-delete:hover { opacity: 0.8; transform: scale(1.15); }
+
+    .empty-state {
       text-align: center;
-      letter-spacing: 0.04em;
-      transition: color 0.3s;
+      padding: 24px;
+      color: var(--text-dim);
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
     }
-    #status.active {
-      color: #6ee7b7;
-    }
-    #status.ringing {
-      color: #f87171;
-      animation: pulse-text 0.7s ease-in-out infinite;
-    }
-    @keyframes pulse-text {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
+    .empty-state .empty-icon { font-size: 36px; opacity: 0.4; }
 
-    /* ── ring overlay ── */
+    /* ── ringing overlay ── */
     .ring-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      z-index: 300;
+      background: rgba(5, 10, 5, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       align-items: center;
       justify-content: center;
-      z-index: 200;
     }
     .ring-overlay.show {
       display: flex;
-      animation: overlay-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      animation: overlay-in 0.4s cubic-bezier(0.34,1.56,0.64,1);
     }
     @keyframes overlay-in {
-      from { opacity: 0; transform: scale(0.92); }
-      to   { opacity: 1; transform: scale(1); }
+      from { opacity:0; transform:scale(0.88); }
+      to   { opacity:1; transform:scale(1); }
+    }
+
+    /* ripples */
+    .ripple { position: absolute; border-radius: 50%; border: 2px solid rgba(249,217,35,0.3); animation: ripple-out 2.2s ease-out infinite; }
+    .ripple:nth-child(2) { animation-delay: 0.7s; }
+    .ripple:nth-child(3) { animation-delay: 1.4s; }
+    @keyframes ripple-out {
+      from { width:100px; height:100px; opacity:0.8; }
+      to   { width:600px; height:600px; opacity:0; }
     }
 
     .ring-box {
-      background: rgba(15, 10, 35, 0.85);
-      border: 1px solid rgba(240, 109, 186, 0.3);
-      border-radius: 32px;
-      padding: 56px 64px;
+      position: relative;
+      background: rgba(20, 12, 5, 0.9);
+      border: 1px solid rgba(249,217,35,0.3);
+      border-radius: 36px;
+      padding: 52px 60px;
       text-align: center;
       display: flex;
       flex-direction: column;
-      gap: 20px;
       align-items: center;
-      box-shadow:
-        0 0 60px rgba(240, 109, 186, 0.2),
-        0 24px 64px rgba(0,0,0,0.6);
+      gap: 18px;
+      box-shadow: 0 0 80px rgba(249,217,35,0.15), 0 24px 64px rgba(0,0,0,0.7);
+      z-index: 1;
+      min-width: 320px;
     }
 
-    .ring-icon {
-      font-size: 64px;
-      animation: ring-shake 0.45s ease-in-out infinite;
-      filter: drop-shadow(0 0 20px rgba(240, 109, 186, 0.8));
-    }
-    @keyframes ring-shake {
-      0%, 100% { transform: rotate(-12deg) scale(1); }
-      50%       { transform: rotate(12deg) scale(1.05); }
+    .ring-gorilla { font-size: 80px; animation: ring-gorilla 0.35s ease-in-out infinite; }
+    @keyframes ring-gorilla {
+      0%,100% { transform: rotate(-10deg) scale(1); }
+      50%      { transform: rotate(10deg) scale(1.1); }
     }
 
-    .ring-box h2 {
-      font-size: 32px;
-      font-weight: 200;
-      color: var(--text-primary);
-      letter-spacing: 0.04em;
+    .ring-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 36px;
+      color: var(--banana);
+      text-shadow: 0 0 30px var(--banana-glow);
     }
-    .ring-box p {
-      font-size: 13px;
-      color: var(--text-secondary);
+
+    .ring-alarm-name {
+      font-size: 14px;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+    }
+    .ring-alarm-time-big {
+      font-family: 'Fredoka One', cursive;
+      font-size: 48px;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .snooze-count {
+      font-size: 12px;
+      color: var(--text-dim);
       letter-spacing: 0.06em;
+      min-height: 18px;
     }
+
+    .ring-btns {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+    }
+
+    #snooze-btn {
+      flex: 1;
+      padding: 15px;
+      border-radius: 16px;
+      border: 1px solid rgba(249,217,35,0.25);
+      background: rgba(249,217,35,0.08);
+      color: var(--banana);
+      font-family: 'Fredoka One', cursive;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      letter-spacing: 0.05em;
+    }
+    #snooze-btn:hover { background: rgba(249,217,35,0.15); }
+    #snooze-btn:active { transform: scale(0.97); }
 
     #dismiss-btn {
-      background: linear-gradient(135deg, #e0365a, #f06dba);
-      color: #fff;
-      border: none;
+      flex: 1;
+      padding: 15px;
       border-radius: 16px;
-      padding: 16px 48px;
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      font-weight: 500;
+      border: none;
+      background: linear-gradient(135deg, var(--banana), #f0a500);
+      color: var(--gorilla);
+      font-family: 'Fredoka One', cursive;
+      font-size: 15px;
       cursor: pointer;
-      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
-      box-shadow: 0 4px 24px rgba(224, 54, 90, 0.45);
-      letter-spacing: 0.06em;
+      box-shadow: 0 4px 20px var(--banana-glow);
+      transition: box-shadow 0.2s, transform 0.15s;
+      letter-spacing: 0.05em;
     }
-    #dismiss-btn:hover {
-      box-shadow: 0 6px 32px rgba(224, 54, 90, 0.65);
-    }
+    #dismiss-btn:hover { box-shadow: 0 6px 28px rgba(249,217,35,0.55); }
     #dismiss-btn:active { transform: scale(0.97); }
 
-    /* ── ripple circles behind ring-box ── */
-    .ripple-ring {
-      position: absolute;
-      border-radius: 50%;
-      border: 1px solid rgba(240, 109, 186, 0.25);
-      animation: ripple-out 2s ease-out infinite;
-    }
-    .ripple-ring:nth-child(2) { animation-delay: 0.6s; }
-    .ripple-ring:nth-child(3) { animation-delay: 1.2s; }
-    @keyframes ripple-out {
-      from { width: 160px; height: 160px; opacity: 0.6; }
-      to   { width: 500px; height: 500px; opacity: 0; }
+    /* ── snooze badge ── */
+    .snooze-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(249,217,35,0.12);
+      border: 1px solid rgba(249,217,35,0.25);
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: var(--banana);
+      font-weight: 500;
+      letter-spacing: 0.08em;
     }
   </style>
 </head>
 <body>
 
-<div class="bg">
-  <div class="blob blob-1"></div>
-  <div class="blob blob-2"></div>
-  <div class="blob blob-3"></div>
-</div>
-<canvas id="stars"></canvas>
+<div class="bg"></div>
+<!-- leaves -->
+<div class="leaf">🌿</div>
+<div class="leaf">🌿</div>
+<div class="leaf">🌿</div>
+<div class="leaf">🌿</div>
+<div class="leaf">🌿</div>
 
-<div class="card">
-  <div class="header">
-    <span class="bell-icon">🔔</span>
-    <h1>Ring Alarm</h1>
+<div class="page">
+
+  <!-- gorilla header -->
+  <div class="gorilla-header">
+    <div class="gorilla-face" id="gorilla-face">🦍</div>
+    <div class="gorilla-title">Gorilla Alarm</div>
+    <div class="gorilla-mood" id="gorilla-mood">ゆっくり休んでるべ…</div>
   </div>
 
-  <div class="clock-wrap">
-    <svg class="clock-svg" viewBox="0 0 220 220">
-      <defs>
-        <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#7c6dfa"/>
-          <stop offset="100%" stop-color="#f06dba"/>
-        </linearGradient>
-      </defs>
-      <circle class="ring-track" cx="110" cy="110" r="100" />
-      <circle class="ring-progress" id="ring-progress" cx="110" cy="110" r="100"
-        stroke-dasharray="628.3"
-        stroke-dashoffset="628.3"
-      />
-    </svg>
-    <div class="clock-inner">
-      <div id="clock">00:00:00</div>
-      <div id="date">--- - --</div>
+  <!-- clock -->
+  <div class="clock-card">
+    <div id="clock">00:00:00</div>
+    <div id="date">---- . -- . -- (−)</div>
+  </div>
+
+  <!-- add alarm -->
+  <div class="add-card">
+    <div class="section-title">🍌 アラームを追加</div>
+    <div class="input-row">
+      <input type="time" id="new-alarm-time" value="07:00" />
+      <input type="text" id="new-alarm-label" placeholder="ラベル（例: 朝ごはん）" maxlength="20" />
+    </div>
+    <button id="add-btn">🦍 追加するべ！</button>
+  </div>
+
+  <!-- alarm list -->
+  <div class="alarm-list-card" id="alarm-list">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">🍌</div>
+      <div>まだアラームがないべ<br>上から追加してけれ！</div>
     </div>
   </div>
 
-  <div class="divider"></div>
-
-  <div class="alarm-section">
-    <span class="alarm-label">アラーム時刻</span>
-    <input type="time" id="alarm-time" value="07:00" />
-  </div>
-
-  <button id="toggle-btn" class="set">アラームをセット</button>
-  <div id="status">アラームはオフです</div>
 </div>
 
+<!-- ringing overlay -->
 <div class="ring-overlay" id="ring-overlay">
-  <div class="ripple-ring"></div>
-  <div class="ripple-ring"></div>
-  <div class="ripple-ring"></div>
+  <div class="ripple"></div>
+  <div class="ripple"></div>
+  <div class="ripple"></div>
   <div class="ring-box">
-    <div class="ring-icon">🔔</div>
-    <h2>アラーム！</h2>
-    <p id="ring-time-label"></p>
-    <button id="dismiss-btn">止める</button>
+    <div class="ring-gorilla">🦍</div>
+    <div class="ring-title">起きるべ！！</div>
+    <div class="ring-alarm-name" id="ring-alarm-name">アラーム</div>
+    <div class="ring-alarm-time-big" id="ring-alarm-time-big">00:00</div>
+    <div class="snooze-count" id="snooze-count"></div>
+    <div class="ring-btns">
+      <button id="snooze-btn">🍌 5分スヌーズ</button>
+      <button id="dismiss-btn">✅ 止めるべ</button>
+    </div>
   </div>
 </div>
 
 <script>
-  /* ── stars canvas ── */
-  (function () {
-    const canvas = document.getElementById('stars');
-    const ctx = canvas.getContext('2d');
-    let stars = [];
-    function resize() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    function initStars() {
-      stars = Array.from({ length: 80 }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        r: Math.random() * 1.2 + 0.2,
-        a: Math.random(),
-        da: (Math.random() - 0.5) * 0.006,
-      }));
-    }
-    function drawStars() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      stars.forEach(s => {
-        s.a = Math.max(0.05, Math.min(0.9, s.a + s.da));
-        if (s.a <= 0.05 || s.a >= 0.9) s.da *= -1;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(200, 200, 255, ${s.a})`;
-        ctx.fill();
-      });
-      requestAnimationFrame(drawStars);
-    }
-    resize();
-    initStars();
-    drawStars();
-    window.addEventListener('resize', () => { resize(); initStars(); });
-  })();
-
-  /* ── alarm logic ── */
-  const clockEl      = document.getElementById('clock');
-  const dateEl       = document.getElementById('date');
-  const alarmInput   = document.getElementById('alarm-time');
-  const toggleBtn    = document.getElementById('toggle-btn');
-  const statusEl     = document.getElementById('status');
-  const ringOverlay  = document.getElementById('ring-overlay');
-  const ringTimeLabel= document.getElementById('ring-time-label');
-  const dismissBtn   = document.getElementById('dismiss-btn');
-  const ringProgress = document.getElementById('ring-progress');
-
-  const CIRCUMFERENCE = 628.3;
-  const DAYS = ['日', '月', '火', '水', '木', '金', '土'];
-
-  let alarmSet = false, alarmTarget = null, audioCtx = null;
-  let ringingInterval = null, alreadyFired = false;
-
-  function pad(n) { return String(n).padStart(2, '0'); }
-
-  function updateRing() {
-    if (!alarmSet || !alarmTarget) {
-      ringProgress.style.strokeDashoffset = CIRCUMFERENCE;
-      return;
-    }
-    const now = new Date();
-    const [ah, am] = alarmTarget.split(':').map(Number);
-    const alarmMs = new Date(now);
-    alarmMs.setHours(ah, am, 0, 0);
-    if (alarmMs <= now) alarmMs.setDate(alarmMs.getDate() + 1);
-    const totalMs = 24 * 60 * 60 * 1000;
-    const remaining = alarmMs - now;
-    const fraction = 1 - (remaining / totalMs);
-    ringProgress.style.strokeDashoffset = CIRCUMFERENCE * (1 - fraction);
+  /* ── floating bananas ── */
+  for (let i = 0; i < 8; i++) {
+    const b = document.createElement('div');
+    b.className = 'float-banana';
+    b.textContent = '🍌';
+    b.style.left = `${Math.random() * 100}vw`;
+    b.style.fontSize = `${18 + Math.random() * 22}px`;
+    b.style.animationDelay = `${Math.random() * -15}s`;
+    b.style.animationDuration = `${12 + Math.random() * 10}s`;
+    document.querySelector('.bg').appendChild(b);
   }
 
+  /* ── state ── */
+  const DAYS = ['日','月','火','水','木','金','土'];
+  let alarms = JSON.parse(localStorage.getItem('gorilla-alarms') || '[]');
+  let ringingId = null;
+  let snoozeCount = 0;
+  let audioCtx = null;
+  let ringingInterval = null;
+
+  const clockEl      = document.getElementById('clock');
+  const dateEl       = document.getElementById('date');
+  const gorillaFace  = document.getElementById('gorilla-face');
+  const gorillaMood  = document.getElementById('gorilla-mood');
+  const alarmList    = document.getElementById('alarm-list');
+  const emptyState   = document.getElementById('empty-state');
+  const ringOverlay  = document.getElementById('ring-overlay');
+  const ringAlarmName= document.getElementById('ring-alarm-name');
+  const ringTimeBig  = document.getElementById('ring-alarm-time-big');
+  const snoozeCountEl= document.getElementById('snooze-count');
+  const snoozeBtn    = document.getElementById('snooze-btn');
+  const dismissBtn   = document.getElementById('dismiss-btn');
+  const addBtn       = document.getElementById('add-btn');
+  const newTimeInput = document.getElementById('new-alarm-time');
+  const newLabelInput= document.getElementById('new-alarm-label');
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function uid()  { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+  function saveAlarms() {
+    localStorage.setItem('gorilla-alarms', JSON.stringify(alarms));
+  }
+
+  /* ── tick ── */
   function tick() {
     const now = new Date();
-    const hh = pad(now.getHours());
-    const mm = pad(now.getMinutes());
-    const ss = pad(now.getSeconds());
+    const hh = pad(now.getHours()), mm = pad(now.getMinutes()), ss = pad(now.getSeconds());
     clockEl.textContent = `${hh}:${mm}:${ss}`;
+    dateEl.textContent  = `${now.getFullYear()}.${pad(now.getMonth()+1)}.${pad(now.getDate())} (${DAYS[now.getDay()]})`;
 
-    const y = now.getFullYear();
-    const mo = pad(now.getMonth() + 1);
-    const d  = pad(now.getDate());
-    const day = DAYS[now.getDay()];
-    dateEl.textContent = `${y}.${mo}.${d} (${day})`;
-
-    updateRing();
-
-    if (alarmSet && alarmTarget && !alreadyFired) {
-      const [ah, am] = alarmTarget.split(':').map(Number);
-      if (now.getHours() === ah && now.getMinutes() === am && now.getSeconds() === 0) {
-        triggerAlarm();
-      }
+    if (ringingId === null) {
+      alarms.forEach(a => {
+        if (!a.enabled) return;
+        const [ah, am] = a.time.split(':').map(Number);
+        if (now.getHours() === ah && now.getMinutes() === am && now.getSeconds() === 0 && !a.snoozedUntil) {
+          triggerAlarm(a.id);
+        }
+        if (a.snoozedUntil) {
+          const su = new Date(a.snoozedUntil);
+          if (now >= su) {
+            a.snoozedUntil = null;
+            saveAlarms();
+            triggerAlarm(a.id);
+          }
+        }
+      });
     }
+
+    updateGorillaState();
   }
 
   setInterval(tick, 1000);
   tick();
 
+  /* ── gorilla state ── */
+  function updateGorillaState() {
+    const activeCount = alarms.filter(a => a.enabled).length;
+    if (ringingId) {
+      gorillaFace.className = 'gorilla-face alert';
+      gorillaMood.textContent = '🔔 起きるべ！！';
+      gorillaMood.className = 'gorilla-mood ringing';
+    } else if (activeCount > 0) {
+      gorillaFace.className = 'gorilla-face';
+      gorillaMood.textContent = `👀 ${activeCount}個のアラームを見張ってるべ`;
+      gorillaMood.className = 'gorilla-mood active';
+    } else {
+      gorillaFace.className = 'gorilla-face sleeping';
+      gorillaMood.textContent = 'ゆっくり休んでるべ…';
+      gorillaMood.className = 'gorilla-mood';
+    }
+  }
+
+  /* ── render list ── */
+  function renderList() {
+    const items = alarmList.querySelectorAll('.alarm-item');
+    items.forEach(el => el.remove());
+
+    if (alarms.length === 0) {
+      emptyState.style.display = 'flex';
+      return;
+    }
+    emptyState.style.display = 'none';
+
+    alarms.forEach(a => {
+      const div = document.createElement('div');
+      div.className = 'alarm-item' +
+        (a.id === ringingId ? ' ringing-alarm' : a.enabled ? ' active-alarm' : '');
+      div.dataset.id = a.id;
+
+      const snoozeHtml = a.snoozedUntil
+        ? `<span class="snooze-badge">🍌 スヌーズ中</span>`
+        : '';
+
+      div.innerHTML = `
+        <div class="alarm-banana">${a.enabled ? '🍌' : '🫙'}</div>
+        <div class="alarm-info">
+          <div class="alarm-time-display">${a.time}</div>
+          <div class="alarm-label-display">${a.label || 'ラベルなし'} ${snoozeHtml}</div>
+        </div>
+        <label class="alarm-toggle">
+          <input type="checkbox" ${a.enabled ? 'checked' : ''} />
+          <span class="toggle-track"></span>
+        </label>
+        <button class="alarm-delete" title="削除">🗑️</button>
+      `;
+
+      div.querySelector('input[type=checkbox]').addEventListener('change', e => {
+        const alarm = alarms.find(x => x.id === a.id);
+        if (alarm) { alarm.enabled = e.target.checked; alarm.snoozedUntil = null; saveAlarms(); renderList(); updateGorillaState(); }
+      });
+      div.querySelector('.alarm-delete').addEventListener('click', () => {
+        alarms = alarms.filter(x => x.id !== a.id);
+        saveAlarms(); renderList(); updateGorillaState();
+      });
+
+      alarmList.appendChild(div);
+    });
+  }
+
+  /* ── add alarm ── */
+  addBtn.addEventListener('click', () => {
+    const time = newTimeInput.value;
+    if (!time) return;
+    alarms.push({ id: uid(), time, label: newLabelInput.value.trim(), enabled: true, snoozedUntil: null });
+    alarms.sort((a, b) => a.time.localeCompare(b.time));
+    saveAlarms();
+    newLabelInput.value = '';
+    renderList();
+    updateGorillaState();
+
+    addBtn.textContent = '🍌 追加したべ！';
+    setTimeout(() => { addBtn.innerHTML = '🦍 追加するべ！'; }, 1200);
+  });
+
   /* ── audio ── */
-  function getAudioCtx() {
+  function getCtx() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     return audioCtx;
   }
 
   function playChime() {
-    const ctx = getAudioCtx();
+    const ctx = getCtx();
     const t = ctx.currentTime;
-    [[880, 0], [1100, 0.22], [880, 0.44], [1320, 0.66]].forEach(([freq, delay]) => {
+    [[523,0],[659,0.18],[784,0.36],[1047,0.54],[784,0.72],[659,0.9]].forEach(([f,d]) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0, t + delay);
-      gain.gain.linearRampToValueAtTime(0.28, t + delay + 0.04);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.5);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(t + delay);
-      osc.stop(t + delay + 0.55);
+      osc.type = 'triangle';
+      osc.frequency.value = f;
+      gain.gain.setValueAtTime(0, t+d);
+      gain.gain.linearRampToValueAtTime(0.22, t+d+0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, t+d+0.55);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(t+d); osc.stop(t+d+0.6);
     });
   }
 
-  function startRingSound() {
-    playChime();
-    ringingInterval = setInterval(playChime, 1400);
-  }
+  function startRinging() { playChime(); ringingInterval = setInterval(playChime, 2200); }
+  function stopRinging()  { clearInterval(ringingInterval); ringingInterval = null; }
 
-  function stopRingSound() {
-    clearInterval(ringingInterval);
-    ringingInterval = null;
-  }
-
-  /* ── alarm state ── */
-  function triggerAlarm() {
-    alreadyFired = true;
-    ringTimeLabel.textContent = `設定時刻  ${alarmTarget}`;
+  /* ── trigger / dismiss / snooze ── */
+  function triggerAlarm(id) {
+    ringingId = id;
+    snoozeCount = 0;
+    const alarm = alarms.find(a => a.id === id);
+    ringAlarmName.textContent = alarm?.label || 'アラーム';
+    ringTimeBig.textContent   = alarm?.time || '';
+    snoozeCountEl.textContent = '';
     ringOverlay.classList.add('show');
-    statusEl.textContent = 'アラーム鳴動中！';
-    statusEl.className = 'ringing';
-    startRingSound();
+    startRinging();
+    updateGorillaState();
+    renderList();
   }
 
-  function dismissAlarm() {
-    stopRingSound();
+  dismissBtn.addEventListener('click', () => {
+    stopRinging();
     ringOverlay.classList.remove('show');
-    alarmSet = false;
-    alreadyFired = false;
-    alarmTarget = null;
-    toggleBtn.textContent = 'アラームをセット';
-    toggleBtn.className = 'set';
-    statusEl.textContent = 'アラームはオフです';
-    statusEl.className = '';
-    ringProgress.style.strokeDashoffset = CIRCUMFERENCE;
-  }
-
-  toggleBtn.addEventListener('click', () => {
-    if (!alarmSet) {
-      alarmTarget = alarmInput.value;
-      if (!alarmTarget) return;
-      alarmSet = true;
-      alreadyFired = false;
-      toggleBtn.textContent = 'キャンセル';
-      toggleBtn.className = 'cancel';
-      statusEl.textContent = `${alarmTarget} にセット済み`;
-      statusEl.className = 'active';
-      updateRing();
-    } else {
-      dismissAlarm();
-    }
+    ringingId = null;
+    snoozeCount = 0;
+    renderList();
+    updateGorillaState();
   });
 
-  dismissBtn.addEventListener('click', dismissAlarm);
+  snoozeBtn.addEventListener('click', () => {
+    stopRinging();
+    ringOverlay.classList.remove('show');
+    if (ringingId) {
+      const alarm = alarms.find(a => a.id === ringingId);
+      if (alarm) {
+        snoozeCount++;
+        alarm.snoozedUntil = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+        saveAlarms();
+      }
+    }
+    const sc = snoozeCount;
+    ringingId = null;
+    snoozeCountEl.textContent = sc > 0 ? `🍌 スヌーズ ${sc}回目だべ…` : '';
+    renderList();
+    updateGorillaState();
+  });
+
+  /* ── init ── */
+  renderList();
+  updateGorillaState();
 </script>
 </body>
 </html>
